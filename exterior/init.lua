@@ -25,7 +25,7 @@ _tardis.exterior.on_place = function(pos, placer, itemstack, pointed_thing)
             _tardis.save_user(name, user)
 		else
             minetest.set_node(pos, {name = "air"})
-            minetest.add_item(pos, "tardis_new:tardis_old")
+            minetest.add_item(pos, _tardis.exterior_skins.colored.blue)
         end
 	end
 end
@@ -59,13 +59,22 @@ _tardis.exterior.tardis_timer = function(pos)
 end
 
 -- Execute each node def (for both regular and the locked varient)
+-- See dynamic_textures.lua for a more detailed list of skin choices
 _tardis.do_src("exterior", "blue") -- "tardis:tardis"
 _tardis.do_src("exterior", "pink")
 _tardis.do_src("exterior", "yellow")
 _tardis.do_src("exterior", "old")
 _tardis.do_src("exterior", "stone")
-_tardis.do_src("exterior", "empty")
+_tardis.do_src("exterior", "empty") -- Cloaked
 _tardis.do_src("exterior", "cool")
 _tardis.do_src("exterior", "leaves")
 _tardis.do_src("exterior", "soda")
 _tardis.do_src("exterior", "funky")
+_tardis.do_src("exterior", "brown")
+_tardis.do_src("exterior", "red")
+_tardis.do_src("exterior", "green")
+_tardis.do_src("exterior", "cyan")
+_tardis.do_src("exterior", "magenta")
+_tardis.do_src("exterior", "orange")
+_tardis.do_src("exterior", "silver")
+_tardis.do_src("exterior", "clear")
