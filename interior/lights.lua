@@ -1,0 +1,47 @@
+
+local lighting = {}
+
+lighting.on_punch = function (pos, node, puncher, pointed)
+    --_tardis.tools.log(minetest.serialize(node))
+    local name = node.name
+    local param1 = node.param1
+    local param2 = node.param2
+    if name:find("tardis:light") then
+        if name:find("off") then
+            minetest.swap_node(pos, {name = "tardis:light_on", param1 = param1, param2 = param2})
+        else
+            minetest.swap_node(pos, {name = "tardis:light_off", param1 = param1, param2 = param2})
+        end
+    end
+end
+
+-- TODO: Fix collision boxes for lights (they currently eat the whole node, not allowing the player to walk thru them/next to them)
+
+minetest.register_node("tardis:light_off", {
+    description = "Tardis Light (Off)",
+    inventory_image = "tardis_light_off.png",
+    drawtype = "signlike",
+    paramtype = "light",
+    sunlight_propagates = true,
+    light_source = 1,
+    paramtype2 = "wallmounted",
+    selection_box = { type = "wallmounted" },
+    drop = "tardis:light_off",
+    tiles = {"tardis_light_off.png"},
+    groups = {oddly_breakable_by_hand = 1},
+    on_punch = lighting.on_punch
+})
+minetest.register_node("tardis:light_on", {
+    description = "Tardis Light (On)",
+    inventory_image = "tardis_light_on.png",
+    drawtype = "signlike",
+    paramtype = "light",
+    sunlight_propagates = true,
+    light_source = minetest.LIGHT_MAX,
+    paramtype2 = "wallmounted",
+    selection_box = { type = "wallmounted" },
+    drop = "tardis:light_off",
+    tiles = {"tardis_light_on.png"},
+    groups = {oddly_breakable_by_hand = 1},
+    on_punch = lighting.on_punch
+})

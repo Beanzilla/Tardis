@@ -52,18 +52,33 @@ end
 -- Returns 0, 90, 180, 270 based on direction given (assumes degree)
 tools.to4dir = function (dir)
     local dir4 = math.floor(dir) / 90
-    tools.log(tostring(dir4))
     if dir4 > 3.5 or dir4 < 0.5 then
-        return 180
+        return 180 -- South, -Z
     elseif dir4 > 2.5 and dir4 < 3.5 then
-        return 270
+        return 270 -- East, +X
     elseif dir4 > 1.5 and dir4 < 2.5 then
-        return 0
+        return 0 -- North, +Z
     elseif dir4 > 0.5 and dir4 < 3.5 then
-        return 90
+        return 90 -- West, -X
     end
     tools.log("to4dir(" .. tostring(dir) .. ") failed with " .. tostring(dir4))
     return -1
+end
+
+-- Returns a {name and direction} given direction (assumes degrees)
+tools.dir2str = function (dir)
+    local dir4 = tools.to4dir(dir)
+    if dir4 == 0 then
+        return {name="North", short_name="N", dir="+Z"}
+    elseif dir4 == 90 then
+        return {name="West", short_name="W", dir="-X"}
+    elseif dir4 == 180 then
+        return {name="South", short_name="S", dir="-Z"}
+    elseif dir4 == 270 then
+        return {name="East", short_name="E", dir="+X"}
+    end
+    tools.log("dir2str(" .. tostring(dir) .. ") failed with " .. tostring(dir4))
+    return {name="???", dir="???"}
 end
 
 -- Given radians returns degrees

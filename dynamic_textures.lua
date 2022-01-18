@@ -20,8 +20,8 @@ _tardis.exterior_skins = {
         yellow_locked = "tardis:tardis_yellow_locked",
         pink = "tardis:tardis_pink",
         pink_locked = "tardis:tardis_pink_locked",
-        blue = "tardis:tardis", -- Default used on make_new_user
-        blue_locked = "tardis:tardis_locked",
+        blue = "tardis:tardis_blue", -- Default used on make_new_user
+        blue_locked = "tardis:tardis_blue_locked",
         -- To complete the rainbow (of sorts)
         brown = "tardis:tardis_brown",
         brown_locked = "tardis:tardis_brown_locked",

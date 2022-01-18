@@ -22,7 +22,7 @@ end
 _tardis.make_new_user = function (user_name)
     local user = _tardis.get_user(user_name)
     if _tardis.tools.tableContainsValue(user, "version") then
-        _tardis.log("User '"..user_name.."' was found with data, rewriting data")
+        _tardis.tools.log("User '"..user_name.."' was found with data, rewriting data")
     end
     user.version = tardis.VERSION -- Just a check to verify this version running is the same as that of the data
     user.power = { -- Because doing things cost power
@@ -32,27 +32,28 @@ _tardis.make_new_user = function (user_name)
         active = false -- If the tardis is powered, true enables lights ahd what not
     }
     user.validation = false -- If this tardis is to be counted as a real thing (on place will set this to true because then it's true)
-    user.waypoints = {} -- Name and pos for this tardis. (Set by tardis:waypoint_console, and API)
+    user.waypoints = {} -- Name and {pos, dir} for this tardis. (Set by tardis:waypoint_console, and API)
     -- All these are set by tardis:navigation_console (out_pos, prev_out_pos, dest_pos)
     user.in_pos = vector.new(0, 0, 0) -- Where to spawn the user so they are inside the tardis (Default's to empty)
     user.out_pos = vector.new(0, 0, 0) -- Where to spawn the user when they exit the tardis (Default's to empty)
     user.prev_out_pos = user.out_pos -- Stores last position (used for when dematerialized but then ran out of power)
     user.dest_pos = vector.new(0, 0, 0) -- Where the tardis is pointing to goto (Not used if just specifying to dematerialize, else appears here on rematerialize)
+    user.dest_dir = 0 -- Face (North, N, +Z) direction
     -- See dynamic_textures.lua for further details
     user.exterior_theme = _tardis.exterior_skins.colored.blue -- "tardis:tardis"
     user.interior_theme = _tardis.interior_skins.light -- "tardis:light_wall"
     user.security = { -- Can be changed only once a tardis:security_manager is placed (And owner is the only one allowed to change it)
-        members = {}, -- Who's allowed on board, (anyone not in this list could be taking damage, anyone on this list could be getting healed etc.)
+        companions = {}, -- Who's allowed on board, (anyone not in this list could be taking damage, anyone on this list could be getting healed etc.)
         pilots = {}, -- Who is authorized to pilot the tardis (only the owner can change security settings, including passive systems etc.)
-        interior_weapons = { -- Damages anyone not a member or pilot (also excludes owner, of course)
+        interior_weapons = { -- Damages anyone not a companion or pilot (also excludes owner, of course)
             state = false,
             damage = 1 -- How many HP is dealt per 3 seconds
         },
-        exterior_weapons = { -- Damages anyone 2 blocks away from the tardis (who is not owner/member/pilot)
+        exterior_weapons = { -- Damages anyone 2 blocks away from the tardis (who is not owner/companion/pilot)
             state = false,
             damage = 1 -- How many HP is dealt per 3 seconds
         },
-        alert_on_intruder = true -- Sends a message to owner and all members and pilots of who and what they hold and their health (only if they are not allowed inside)
+        alert_on_intruder = true -- Sends a message to owner and all companions and pilots of who and what they hold and their health (only if they are not allowed inside)
         -- Doesn't say where though, so someone could teleport in via vortex manipulator or even their tardis (which will trigger only when they leave it)
     }
     user.physics = {
@@ -62,7 +63,7 @@ _tardis.make_new_user = function (user_name)
         artifical_env = false, -- Produces a 2 block radius around the tardis of breathable air, great for underwater or under lava.
         artifical_grav = false -- On exiting the tardis gravity is reduced to 0, allowing anyone to float (up to a 2 block radius)
     }
-    user.passive_systems = { -- Applied to owner/members/pilots
+    user.passive_systems = { -- Applied to owner/companions/pilots
         health = {
             state = false,
             rate = 1 -- How many HP is replenished per 3 seconds

@@ -40,8 +40,11 @@ _tardis.tools.log("Version:  "..tostring(tardis.VERSION))
 _tardis.tools.log("Gamemode: "..tostring(_tardis.GAMEMODE))
 
 -- Initalize _private user (using modstorage for storing tardis information)
-_tardis.do_src("dynamic_textures") -- For Exterior and Interior
+_tardis.do_src("dynamic_textures") -- For Exterior and Interior "skins"
 _tardis.do_src("user_data") -- User data for tardis mod is initilized here
 
--- Initailze exteriors
+-- Initalize exteriors
 _tardis.do_src("exterior", "init") -- Initalizes all exterior skins
+
+-- Initalize interiors (walls and lights, no consoles)
+_tardis.do_src("interior", "init") -- Initalizes both dark and light themes for interior, use swap_node and find_node_in_area for changing
