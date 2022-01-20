@@ -15,33 +15,35 @@ lighting.on_punch = function (pos, node, puncher, pointed)
     end
 end
 
--- TODO: Fix collision boxes for lights (they currently eat the whole node, not allowing the player to walk thru them/next to them)
-
 minetest.register_node("tardis:light_off", {
-    description = "Tardis Light (Off)",
+    short_description = "Tardis Light",
+    description = "Tardis Light (Off)\nPunch to toggle ON.",
     inventory_image = "tardis_light_off.png",
     drawtype = "signlike",
     paramtype = "light",
     sunlight_propagates = true,
+    walkable = false,
     light_source = 1,
     paramtype2 = "wallmounted",
     selection_box = { type = "wallmounted" },
     drop = "tardis:light_off",
     tiles = {"tardis_light_off.png"},
-    groups = {oddly_breakable_by_hand = 1},
+    groups = {dig_immediate=3},
     on_punch = lighting.on_punch
 })
 minetest.register_node("tardis:light_on", {
-    description = "Tardis Light (On)",
+    short_description = "Tardis Light",
+    description = "Tardis Light (On)\nPunch to toggle OFF.",
     inventory_image = "tardis_light_on.png",
     drawtype = "signlike",
     paramtype = "light",
+    walkable = false,
     sunlight_propagates = true,
     light_source = minetest.LIGHT_MAX,
     paramtype2 = "wallmounted",
     selection_box = { type = "wallmounted" },
     drop = "tardis:light_off",
     tiles = {"tardis_light_on.png"},
-    groups = {oddly_breakable_by_hand = 1},
+    groups = {dig_immediate=3},
     on_punch = lighting.on_punch
 })

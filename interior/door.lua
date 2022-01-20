@@ -1,5 +1,5 @@
 
-minetest.register_node("tardis:_door", {
+minetest.register_node("tardis:interior_door", {
     description = "Tardis Interior Door",
     tiles = {"inside_door.png"},
     drawtype = "mesh",
