@@ -8,9 +8,9 @@ exterior.on_place = function(pos, placer, itemstack, pointed_thing)
         local user = _tardis.get_user(name)
 		if _tardis.tools.tableContainsValue(user, "version") ~= true then
             user = _tardis.make_new_user(name)
-            user.out_pos = pos -- Prev will still record 0, 0, 0 (at least until first jump into dematerialzation)
+            user.out_pos = vector.new(pos.x, pos.y, pos.z) -- Prev will still record 0, 0, 0 (at least until first jump into dematerialzation)
 			pos.y = pos.y-300
-			minetest.place_schematic(pos, _tardis.MODPATH .. DIR_DELIM .. "schems" .. DIR_DELIM .. "console_room.mts")
+			minetest.place_schematic(pos, _tardis.MODPATH .. DIR_DELIM .. "schems" .. DIR_DELIM .. "interior_console_room.mts")
 			pos.y = pos.y+2
 			pos.x = pos.x+7
 			pos.z = pos.z+16
@@ -19,7 +19,7 @@ exterior.on_place = function(pos, placer, itemstack, pointed_thing)
 			otimer:start(0.2) --start door timer (in case it doesn't start on construct)
 			ometa:set_string("id", name) --set door id
 			meta:set_string("id", name) -- set exterior id
-            user.in_pos = pos
+            user.in_pos = vector.new(pos.x, pos.y, pos.z)
             user.validation = true
 			timer:start(0.2)
             _tardis.save_user(name, user)
@@ -45,6 +45,7 @@ exterior.tardis_timer = function(pos)
 			objs[1]:set_look_horizontal( math.rad( 180 ))
 			objs[1]:set_look_vertical( math.rad( 0 ))
 			objs[1]:set_pos(go_pos)
+			_tardis.tools.log("Player '"..objs[1]:get_player_name().."' enters tardis located at "..minetest.pos_to_string(go_pos))
 			pmeta:set_string("id", id)
 		else
 			local meta = minetest.get_meta(pos)
@@ -54,6 +55,7 @@ exterior.tardis_timer = function(pos)
             if go_pos == nil then return true end
 			go_pos.z = go_pos.z-2
 			objs[1]:set_pos(go_pos)
+			_tardis.tools.log("Entity enters tardis located at "..minetest.pos_to_string(go_pos))
 		end
 	end
 	return true
@@ -72,7 +74,7 @@ exterior.make_series = function (item)
 		light_source = 10,
 		groups = {not_in_creative_inventory = 1, tardis = 1},
 		use_texture_alpha = "clip",
-		after_place_node = exterior.tardis_on_place,
+		after_place_node = exterior.on_place,
 		diggable = false,
 		on_timer = exterior.tardis_timer
 	})
@@ -104,7 +106,7 @@ exterior.make_raw = function (item, img)
 		light_source = 10,
 		groups = {not_in_creative_inventory = 1, tardis = 1},
 		use_texture_alpha = "clip",
-		after_place_node = exterior.tardis_on_place,
+		after_place_node = exterior.on_place,
 		diggable = false,
 		on_timer = exterior.tardis_timer
 	})
@@ -136,7 +138,7 @@ exterior.make_block = function (item, img)
 		light_source = 10,
 		groups = {not_in_creative_inventory = 1, tardis = 1},
 		use_texture_alpha = "clip",
-		after_place_node = exterior.tardis_on_place,
+		after_place_node = exterior.on_place,
 		diggable = false,
 		on_timer = exterior.tardis_timer
 	})
