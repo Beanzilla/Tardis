@@ -81,6 +81,37 @@ tools.dir2str = function (dir)
     return {name="???", dir="???"}
 end
 
+-- Flips the dir given to it's opposite (assumes degrees)
+tools.flip_dir = function (dir)
+    local my_dir = tools.to4dir(math.floor(dir))
+    local look = tools.dir2str(my_dir)
+    if look.short_name == "N" then
+        return 180 -- S
+    elseif look.short_name == "S" then
+        return 0 -- N
+    elseif look.short_name == "E" then
+        return 90 -- W
+    elseif look.short_name == "W" then
+        return 270 -- E
+    end
+    tools.log("flip_dir("..tostring(dir)..") is facing "..look.name.." ("..look.short_name..", "..look.dir..")")
+end
+
+-- Returns the param2 field (assumes given degrees)
+tools.toParam2 = function (dir)
+    local my_dir = tools.to4dir(math.floor(dir))
+    if my_dir == 0 then
+        return 0 -- N
+    elseif my_dir == 270 then
+        return 3 -- E
+    elseif my_dir == 180 then
+        return 2 -- S
+    elseif my_dir == 90 then
+        return 1 -- W
+    end
+    tools.log("toParam2("..tostring(dir)..") is facing "..tostring(my_dir))
+end
+
 -- Given radians returns degrees
 tools.rad2deg = function (rads)
     return (rads * 180) / 3.14159

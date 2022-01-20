@@ -6,14 +6,18 @@ exterior.on_place = function(pos, placer, itemstack, pointed_thing)
 		local name = placer:get_player_name()
 		local timer = minetest.get_node_timer(pos)
         local user = _tardis.get_user(name)
-		if _tardis.tools.tableContainsValue(user, "version") ~= true then
+		if user.version == nil then
             user = _tardis.make_new_user(name)
             user.out_pos = vector.new(pos.x, pos.y, pos.z) -- Prev will still record 0, 0, 0 (at least until first jump into dematerialzation)
 			pos.y = pos.y-300
 			minetest.place_schematic(pos, _tardis.MODPATH .. DIR_DELIM .. "schems" .. DIR_DELIM .. "interior_console_room.mts")
-			pos.y = pos.y+2
+			pos.y = pos.y+1
 			pos.x = pos.x+7
 			pos.z = pos.z+16
+			local node = minetest.get_node_or_nil(vector.new(pos.x, pos.y, pos.z))
+			if node ~= nil then
+				_tardis.tools.log("Pos: "..minetest.pos_to_string(pos).." Node: "..node.name)
+			end
 			local ometa = minetest.get_meta(pos)
 			local otimer = minetest.get_node_timer(pos)
 			otimer:start(0.2) --start door timer (in case it doesn't start on construct)
@@ -21,11 +25,20 @@ exterior.on_place = function(pos, placer, itemstack, pointed_thing)
 			meta:set_string("id", name) -- set exterior id
             user.in_pos = vector.new(pos.x, pos.y, pos.z)
             user.validation = true
-			timer:start(0.2)
+			 -- Gets the opposite dir (the one the user should enter)
+			 -- Then sets the param2/facing
+			user.dest_dir = _tardis.tools.toParam2( _tardis.tools.flip_dir( _tardis.tools.rad2deg( placer:get_look_horizontal() ) ) )
+			_tardis.tools.log("Param2="..tostring(user.dest_dir))
+			local myself = minetest.get_node_or_nil(user.out_pos)
+			if myself ~= nil and myself.param2 ~= user.dest_dir then
+				user.exterior_skins = myself.name -- Update it so our exterior is by default what ever tardis was placed
+				minetest.swap_node(user.out_pos, {name=myself.name, param1=user.dest_dir, param2=user.dest_dir}) -- Attempt to replace ourselves
+			end
+			timer:start(0.2) -- Start tardis timer
             _tardis.save_user(name, user)
 		else
             minetest.set_node(pos, {name = "air"})
-            minetest.add_item(pos, _tardis.exterior_skins.colored.blue)
+            minetest.add_item(pos, itemstack)
 			minetest.chat_send_player(name, "You can only have 1 Tardis.")
         end
 	end
@@ -53,7 +66,7 @@ exterior.tardis_timer = function(pos)
 			local user = _tardis.get_user(id)
             local go_pos = user.in_pos or nil
             if go_pos == nil then return true end
-			go_pos.z = go_pos.z-2
+			go_pos.z = go_pos.z-1
 			objs[1]:set_pos(go_pos)
 			_tardis.tools.log("Entity enters tardis located at "..minetest.pos_to_string(go_pos))
 		end
@@ -68,6 +81,7 @@ exterior.make_series = function (item)
 		description = "Tardis",
 		tiles = {"tardis_".. item ..".png"},
 		drawtype = "mesh",
+		paramtype2 = "facedir",
 		mesh = "tardis.obj",
 		selection_box = {type = "fixed", fixed = { { -0.5, -0.5, -0.5, 0.5, 1.5, 0.5 } }},
 		collision_box = {type = "fixed", fixed = { { 0.48, -0.5,-0.5,  0.5,  1.5, 0.5}, {-0.5 , -0.5, 0.48, 0.48, 1.5, 0.5}, {-0.5,  -0.5,-0.5 ,-0.48, 1.5, 0.5}, { -0.8,-0.6,-0.8,0.8,-0.48, 0.8} }},
@@ -82,6 +96,7 @@ exterior.make_series = function (item)
 		description = "Tardis",
 		tiles = {"tardis_".. item ..".png"},
 		drawtype = "mesh",
+		paramtype2 = "facedir",
 		mesh = "tardis.obj",
 		selection_box = {type = "fixed", fixed = { { -0.5, -0.5, -0.5, 0.5, 1.5, 0.5 } }},
 		collision_box = {type = "fixed", fixed = { { -0.5, -0.5, -0.5, 0.5, 1.5, 0.5 } }},
@@ -100,6 +115,7 @@ exterior.make_raw = function (item, img)
 		tiles = {img ..".png"},
 		drawtype = "nodebox",
 		--mesh = "tardis.obj",
+		paramtype2 = "facedir",
 		node_box = {type = "fixed", fixed = { { -0.5, -0.5, -0.5, 0.5, 1.5, 0.5 } }},
 		selection_box = {type = "fixed", fixed = { { -0.5, -0.5, -0.5, 0.5, 1.5, 0.5 } }},
 		collision_box = {type = "fixed", fixed = { { 0.48, -0.5,-0.5,  0.5,  1.5, 0.5}, {-0.5 , -0.5, 0.48, 0.48, 1.5, 0.5}, {-0.5,  -0.5,-0.5 ,-0.48, 1.5, 0.5}, { -0.8,-0.6,-0.8,0.8,-0.48, 0.8} }},
@@ -115,6 +131,7 @@ exterior.make_raw = function (item, img)
 		tiles = {img ..".png"},
 		drawtype = "nodebox",
 		--mesh = "tardis.obj",
+		paramtype2 = "facedir",
 		node_box = {type = "fixed", fixed = { { -0.5, -0.5, -0.5, 0.5, 1.5, 0.5 } }},
 		selection_box = {type = "fixed", fixed = { { -0.5, -0.5, -0.5, 0.5, 1.5, 0.5 } }},
 		collision_box = {type = "fixed", fixed = { { -0.5, -0.5, -0.5, 0.5, 1.5, 0.5 } }},
@@ -126,16 +143,20 @@ exterior.make_raw = function (item, img)
 end
 
 -- Different in aspect as everything is manually defined here
-exterior.make_block = function (item, img)
+exterior.make_block = function (item, img, light_lvl)
+	if light_lvl == nil then
+		light_lvl = 10
+	end
 	local locked = item .. "_locked"
 	minetest.register_node("tardis:tardis_"..item, {
 		description = "Tardis",
 		tiles = {img .. ".png"},
 		drawtype = "nodebox",
+		paramtype2 = "facedir",
 		node_box = {type = "fixed", fixed = { { -0.5, -0.5, -0.5, 0.5, 1.5, 0.5 } }},
 		selection_box = {type = "fixed", fixed = { { -0.5, -0.5, -0.5, 0.5, 1.5, 0.5 } }},
 		collision_box = {type = "fixed", fixed = { { 0.48, -0.5,-0.5,  0.5,  1.5, 0.5}, {-0.5 , -0.5, 0.48, 0.48, 1.5, 0.5}, {-0.5,  -0.5,-0.5 ,-0.48, 1.5, 0.5}, { -0.8,-0.6,-0.8,0.8,-0.48, 0.8} }},
-		light_source = 10,
+		light_source = light_lvl,
 		groups = {not_in_creative_inventory = 1, tardis = 1},
 		use_texture_alpha = "clip",
 		after_place_node = exterior.on_place,
@@ -146,10 +167,11 @@ exterior.make_block = function (item, img)
 		description = "Tardis",
 		tiles = {img .. ".png"},
 		drawtype = "nodebox",
+		paramtype2 = "facedir",
 		node_box = {type = "fixed", fixed = { { -0.5, -0.5, -0.5, 0.5, 1.5, 0.5 } }},
 		selection_box = {type = "fixed", fixed = { { -0.5, -0.5, -0.5, 0.5, 1.5, 0.5 } }},
 		collision_box = {type = "fixed", fixed = { { -0.5, -0.5, -0.5, 0.5, 1.5, 0.5 } }},
-		light_source = 5,
+		light_source = light_lvl,
 		groups = {not_in_creative_inventory = 1,  tardis_locked = 1},
 		use_texture_alpha = "clip",
 		diggable = false
@@ -175,5 +197,4 @@ exterior.make_series("soda")
 exterior.make_series("funky")
 exterior.make_raw("stone", "default_stone")
 exterior.make_raw("leave", "default_leaves")
-exterior.make_block("empty", "empty") -- Cloaked
-
+exterior.make_block("empty", "empty", 2) -- Cloaked

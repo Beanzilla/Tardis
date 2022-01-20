@@ -1,12 +1,14 @@
 
 -- Obtains either a empty table or the user's data
 _tardis.get_user = function (user_name)
-    local user = _tardis.store:get_string(user_name) or nil
-    if user == nil then
+    local user = _tardis.store:get_string(user_name)
+    if user == nil or user == "" then
         _tardis.tools.log("Didn't find a user by '"..user_name.."' name, creation occured")
         user = {}
     else
-        user = minetest.deserialize(user) or {}
+        --_tardis.tools.log("Found '"..user_name.."' with '"..user.."' data")
+        user = minetest.deserialize(user)
+        --_tardis.tools.log("Returning '"..minetest.serialize(user).."'")
     end
     return user
 end
@@ -21,10 +23,7 @@ end
 -- Makes new user data
 _tardis.make_new_user = function (user_name)
     local user = _tardis.get_user(user_name)
-    if user == nil then
-        user = {}
-    end
-    if _tardis.tools.tableContainsValue(user, "version") then
+    if user.version ~= nil then
         _tardis.tools.log("User '"..user_name.."' was found with data, rewriting data")
     end
     user.version = tardis.VERSION -- Just a check to verify this version running is the same as that of the data

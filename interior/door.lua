@@ -25,9 +25,9 @@ minetest.register_node("tardis:interior_door", {
     diggable = false,
     on_timer = function(pos)
         local objs = minetest.get_objects_inside_radius(pos, 0.9)
-        if #objs ~= 0 then
-            _tardis.tools.log("Found "..tostring(#objs).."# of objects")
-        end
+        --[[if #objs ~= 0 then
+            _tardis.tools.log("Found "..tostring(#objs).." # of objects, at "..minetest.pos_to_string(pos))
+        end]]
         if objs[1] == nil then return true else
             if objs[1]:is_player() then -- Check if it's a player or if it's an entity (mob)
             
@@ -35,16 +35,29 @@ minetest.register_node("tardis:interior_door", {
                 local meta = minetest.get_meta(pos)
                 local id = meta:get_string("id")
                 local user = _tardis.get_user(id)
-                if _tardis.tools.tableContainsValue(user, "version") ~= true then
+                if user.version == nil then
                     _tardis.tools.log("Registering door before after failed to get user '"..id.."'.")
                     return true
                 end
                 local go_pos = user.out_pos
                 
                 -- Change this based on the tardis's exit direction (rather than hard coded for only one dir)
-                go_pos.z = go_pos.z-2
+                local look = 0
+                if user.dest_dir == 0 then -- N
+                    go_pos.z = go_pos.z+1
+                    look = 0
+                elseif user.dest_dir == 2 then -- S
+                    go_pos.z = go_pos.z-1
+                    look = 180
+                elseif user.dest_dir == 1 then -- W
+                    go_pos.x = go_pos.x-1
+                    look = 90
+                elseif user.dest_dir == 3 then -- E
+                    go_pos.x = go_pos.x+1
+                    look = 270
+                end
                 objs[1]:set_pos(go_pos)
-                objs[1]:set_look_horizontal( _tardis.tools.deg2rad(180) )
+                objs[1]:set_look_horizontal( _tardis.tools.deg2rad(look) )
                 objs[1]:set_look_vertical( _tardis.tools.deg2rad(0) )
                 _tardis.tools.log("Player '"..objs[1]:get_player_name().."' exits tardis located at "..minetest.pos_to_string(go_pos))
                 
@@ -60,13 +73,13 @@ minetest.register_node("tardis:interior_door", {
                     local meta = minetest.get_meta(pos)
                     local id = meta:get_string("id")
                     local user = _tardis.get_user(id)
-                    if _tardis.tools.tableContainsValue(user, "version") ~= true then
+                    if user.version == nil then
                         _tardis.tools.log("Registering door at after failed to get user '"..id.."'.")
                         return
                     end
                     local go_pos = user.out_pos
                     local look = user.exterior_theme
-                    minetest.set_node(go_pos, {name=look}) -- Set exterior skin
+                    minetest.set_node(go_pos, {name=look, param1=user.dest_dir, param2=user.dest_dir}) -- Set exterior skin
                     local ometa = minetest.get_meta(go_pos)
                     ometa:set_string("id", id)
                     local timer = minetest.get_node_timer(go_pos)
@@ -76,13 +89,22 @@ minetest.register_node("tardis:interior_door", {
                 local meta = minetest.get_meta(pos)
                 local id = meta:get_string("id")
                 local user = _tardis.get_user(id)
-                if _tardis.tools.tableContainsValue(user, "version") ~= true then
+                if user.version == nil then
                     _tardis.tools.log("Registering door at entity not player failed to get user '"..id.."'.")
                     return true
                 end
                 local go_pos = user.out_pos
                 -- Change this based on the tardis's exit direction (rather than hard coded for only one dir)
-                go_pos.z = go_pos.z-2
+                --go_pos.z = go_pos.z-1
+                if user.dest_dir == 0 then -- N
+                    go_pos.z = go_pos.z+1
+                elseif user.dest_dir == 2 then -- S
+                    go_pos.z = go_pos.z-1
+                elseif user.dest_dir == 1 then -- W
+                    go_pos.x = go_pos.x-1
+                elseif user.dest_dir == 3 then -- E
+                    go_pos.x = go_pos.x+1
+                end
                 objs[1]:set_pos(go_pos)
                 _tardis.tools.log("Entity exits tardis located at "..minetest.pos_to_string(go_pos))
             end
