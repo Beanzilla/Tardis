@@ -6,7 +6,7 @@ _tardis.get_user = function (user_name)
         _tardis.tools.log("Didn't find a user by '"..user_name.."' name, creation occured")
         user = {}
     else
-        user = minetest.deserialize(user)
+        user = minetest.deserialize(user) or {}
     end
     return user
 end
@@ -21,6 +21,9 @@ end
 -- Makes new user data
 _tardis.make_new_user = function (user_name)
     local user = _tardis.get_user(user_name)
+    if user == nil then
+        user = {}
+    end
     if _tardis.tools.tableContainsValue(user, "version") then
         _tardis.tools.log("User '"..user_name.."' was found with data, rewriting data")
     end
@@ -36,7 +39,7 @@ _tardis.make_new_user = function (user_name)
     -- All these are set by tardis:navigation_console (out_pos, prev_out_pos, dest_pos)
     user.in_pos = vector.new(0, 0, 0) -- Where to spawn the user so they are inside the tardis (Default's to empty)
     user.out_pos = vector.new(0, 0, 0) -- Where to spawn the user when they exit the tardis (Default's to empty)
-    user.prev_out_pos = user.out_pos -- Stores last position (used for when dematerialized but then ran out of power)
+    user.prev_out_pos = vector.new(0, 0, 0) -- Stores last position (used for when dematerialized but then ran out of power)
     user.dest_pos = vector.new(0, 0, 0) -- Where the tardis is pointing to goto (Not used if just specifying to dematerialize, else appears here on rematerialize)
     user.dest_dir = 0 -- Face (North, N, +Z) direction
     -- See dynamic_textures.lua for further details
