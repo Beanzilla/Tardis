@@ -23,12 +23,12 @@ minetest.register_node("tardis:light_off", {
     paramtype = "light",
     sunlight_propagates = true,
     walkable = false,
-    light_source = 1,
+    light_source = 3,
     paramtype2 = "wallmounted",
     selection_box = { type = "wallmounted" },
     drop = "tardis:light_off",
     tiles = {"tardis_light_off.png"},
-    groups = {dig_immediate=3},
+    groups = {oddly_breakable_by_hand=1},
     on_punch = lighting.on_punch
 })
 minetest.register_node("tardis:light_on", {
@@ -44,6 +44,6 @@ minetest.register_node("tardis:light_on", {
     selection_box = { type = "wallmounted" },
     drop = "tardis:light_off",
     tiles = {"tardis_light_on.png"},
-    groups = {dig_immediate=3},
+    groups = {oddly_breakable_by_hand=1},
     on_punch = lighting.on_punch
 })
