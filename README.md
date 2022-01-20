@@ -1,9 +1,11 @@
 # Tardis
 A mod inspired by [Taridis_New](https://github.com/PiDemon/Taridis_New), using extra features and complete redesign from ground up.
 
+![Complete colors (including older designs)](screenshot.png)
+
 ## Todo:
 
-> Last Updated: 01/18/2022
+> Last Updated: 01/20/2022
 
 - [x] Build Mod Storage Structure
 - [ ] Build more sophisticated placement of tardis interior schematic (Focus on more better placement coding)
