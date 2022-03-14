@@ -16,8 +16,11 @@ end
 -- Saves the user's data
 _tardis.save_user = function (user_name, user_data)
     local user = _tardis.get_user(user_name)
-    user = user_data
-    _tardis.store:set_string(user_name, minetest.serialize(user))
+    if user ~= user_data then
+        -- Only save what you need
+        user = user_data
+        _tardis.store:set_string(user_name, minetest.serialize(user))
+    end
 end
 
 -- Makes new user data
@@ -48,11 +51,11 @@ _tardis.make_new_user = function (user_name)
         companions = {}, -- Who's allowed on board, (anyone not in this list could be taking damage, anyone on this list could be getting healed etc.)
         pilots = {}, -- Who is authorized to pilot the tardis (only the owner can change security settings, including passive systems etc.)
         interior_weapons = { -- Damages anyone not a companion or pilot (also excludes owner, of course)
-            state = false,
+            state = false, -- Consumes 1 power
             damage = 1 -- How many HP is dealt per 3 seconds
         },
         exterior_weapons = { -- Damages anyone 2 blocks away from the tardis (who is not owner/companion/pilot)
-            state = false,
+            state = false, -- Consumes 1 power
             damage = 1 -- How many HP is dealt per 3 seconds
         },
         alert_on_intruder = true -- Sends a message to owner and all companions and pilots of who and what they hold and their health (only if they are not allowed inside)
@@ -67,23 +70,186 @@ _tardis.make_new_user = function (user_name)
     }
     user.passive_systems = { -- Applied to owner/companions/pilots
         health = {
-            state = false,
+            state = false, -- Consumes 1 power, 2 if it healed someone
             rate = 1 -- How many HP is replenished per 3 seconds
         },
         repair = { -- (This feature will be comming soon)
-            state = false,
+            state = false, -- Consumes 1 power, 2 if it repaired something someone
             rate = 1 -- How many percents is replenished per 3 seconds
         },
         recharge = { -- Only avalible if technic is installed (This feature will be comming soon)
-            state = false,
+            state = false, -- Consumes 1 power, 2 if it recharged something of someone
             rate = 1 -- How many percents is replenished per 3 seconds
         },
         feeding = { -- Only avalible if either MCL(2&5) or stamina is installed (This feature will be comming soon)
-            state = false,
+            state = false, -- Consumes 1 power, 2 if it feed someone
             rate = 1 -- How many hunger points is replenished per 3 seconds
         }
     }
     -- Save it
     _tardis.save_user(user_name, user)
     return user -- Just to prevent needing to get the user yet again just to update the table
+end
+
+-- Attempts to return a table of {success=bool, errmsg=string, pos=table, dir=number} of the waypoint
+_tardis.get_waypoint = function (user_name, waypoint_name)
+    local user = _tardis.get_user(user_name)
+    for _, k in ipairs(user.waypoints) do
+        if k.name == waypoint_name then
+            return {success=true, errmsg="", pos=k.pos, dir=k.dir}
+        end
+    end
+    return {success=false, errmsg="No such waypoint '"..waypoint_name.."' for user '"..user_name.."'.", pos=vector.new(0, 0, 0), dir=0}
+end
+
+-- Sets a waypoint given it's name, position for where it should be, and it's direction
+_tardis.set_waypoint = function (user_name, waypoint_name, pos, dir)
+    local user = _tardis.get_user(user_name)
+    local found = false
+    local idx = 0
+    for id, k in ipairs(user.waypoints) do
+        if k.name == waypoint_name then
+            found = true
+            idx = id
+            break
+        end
+    end
+    if found then
+        user.waypoints[idx].pos = vector.new(pos.x, pos.y, pos.z)
+        user.waypoints[idx].dir = dir
+    else
+        table.insert(user.waypoints, {name = waypoint_name, pos = vector.new(pos.x, pos.y, pos.z), dir = dir})
+    end
+    _tardis.save_user(user_name, user)
+end
+
+-- Checks if the given player_name is a companion of the user
+_tardis.is_companion = function (user_name, player_name)
+    local user = _tardis.get_user(user_name)
+    for _, k in ipairs(user.security.companions) do
+        if k == player_name then
+            return true
+        end
+    end
+    return false
+end
+
+-- Attempts to add the given player_name to user
+_tardis.add_companion = function (user_name, player_name)
+    local user = _tardis.get_user(user_name)
+    if _tardis.is_companion(user_name, player_name) == true then
+        return {success=false, errmsg="Companion '"..player_name.."' is already a companion for user '"..user_name.."'."}
+    end
+    table.insert(user.security.companions, player_name)
+    _tardis.save_user(user_name, user)
+    return {success=true, errmsg=""}
+end
+
+-- Attempts to remove the given player_name from user
+_tardis.remove_companion = function (user_name, player_name)
+    local user = _tardis.get_user(user_name)
+    if _tardis.is_companion(user_name, player_name) == false then
+        return {success=false, errmsg="No such companion '"..player_name.."' for user '"..user_name.."'."}
+    end
+    local new_list = {}
+    for _, k in ipairs(user.security.companions) do
+        if k ~= player_name then
+            table.insert(new_list, k)
+        end
+    end
+    user.security.companions = new_list
+    _tardis.save_user(user_name, user)
+    return {success=true, errmsg=""}
+end
+
+-- Is the given player_name a pilot of user
+_tardis.is_pilot = function (user_name, player_name)
+    local user = _tardis.get_user(user_name)
+    for _, k in ipairs(user.security.pilots) do
+        if k == player_name then
+            return true
+        end
+    end
+    return false
+end
+
+-- Attempts to add given player_name to user
+_tardis.add_pilot = function (user_name, player_name)
+    local user = _tardis.get_user(user_name)
+    if _tardis.is_pilot(user_name, player_name) == true then
+        return {success=false, errmsg="Pilot '"..player_name.."' is already a pilot for user '"..user_name.."'."}
+    end
+    table.insert(user.security.pilots, player_name)
+    _tardis.save_user(user_name, user)
+    return {success=true, errmsg=""}
+end
+
+-- Attempts to remove given player_name from user
+_tardis.remove_pilot = function (user_name, player_name)
+    local user = _tardis.get_user(user_name)
+    if _tardis.is_pilot(user_name, player_name) == false then
+        return {success=false, errmsg="No such pilot '"..player_name.."' for user '"..user_name.."'."}
+    end
+    local new_list = {}
+    for _, k in ipairs(user.security.pilots) do
+        if k ~= player_name then
+            table.insert(new_list, k)
+        end
+    end
+    user.security.pilots = new_list
+    _tardis.save_user(user_name, user)
+    return {success=true, errmsg=""}
+end
+
+-- Attempts to promote the given player_name for user
+_tardis.promote = function (user_name, player_name)
+    local at = _tardis.is_allowed(user_name, player_name)
+    if at.rank == "" then
+        -- Add them as a companion if they are not allowed
+        _tardis.add_companion(user_name, player_name)
+        return {success=true, errmsg="'"..player_name.."' is now rank Companion for '"..user_name.."'."}
+    elseif at.rank == "Companion" then
+        -- Promote them to Pilot
+        _tardis.remove_companion(user_name, player_name)
+        _tardis.add_pilot(user_name, player_name)
+        return {success=true, errmsg="'"..player_name.."' is now rank Pilot for '"..user_name.."'."}
+    elseif at.rank == "Pilot" or at.rank == "Owner" then
+        -- Do nothing on Pilot or Owner
+        return {success=false, errmsg="You can't promote '"..player_name.."' any higher."}
+    end
+end
+
+-- Attempts to demote the given player_name for user
+_tardis.demote = function (user_name, player_name)
+    local at = _tardis.is_allowed(user_name, player_name)
+    if at.rank == "" then
+        -- Do nothing if they are not allowed (already)
+        return {success=false, errmsg="Player '"..player_name.."' isn't allowed in "..user_name.."'s Tardis."}
+    elseif at.rank == "Companion" then
+        -- Remove all rank from them if they are Companion
+        _tardis.remove_companion(user_name, player_name)
+        return {success=true, errmsg="'"..player_name.."' has been removed from "..user_name.."'s Tardis."}
+    elseif at.rank == "Pilot" then
+        -- Demote them from Pilot to Companion
+        _tardis.remove_pilot(user_name, player_name)
+        _tardis.add_companion(user_name, player_name)
+        return {success=true, errmsg="'"..player_name.."' is now rank Companion for '"..user_name.."'."}
+    elseif at.rank == "Owner" then
+        -- Do nothing on Owner
+        return {success=false, errmsg="You can't demote '"..player_name.."' any lower."}
+    end
+end
+
+-- Returns if the given player is allowed in the user's tardis (if false then we need to report intruder)
+-- Also returns what their rank is (I.E. Owner, Pilot, Companion)
+_tardis.is_allowed = function (user_name, player_name)
+    if user_name == player_name then
+        return {allowed=true, rank="Owner"}
+    elseif _tardis.is_pilot(user_name, player_name) == true then
+        return {allowed=true, rank="Pilot"}
+    elseif _tardis.is_companion(user_name, player_name) == true then
+        return {allowed=true, rank="Companion"}
+    else
+        return {allowed=false, rank=""}
+    end
 end

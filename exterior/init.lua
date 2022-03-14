@@ -10,6 +10,7 @@ exterior.on_place = function(pos, placer, itemstack, pointed_thing)
             user = _tardis.make_new_user(name)
             user.out_pos = vector.new(pos.x, pos.y, pos.z) -- Prev will still record 0, 0, 0 (at least until first jump into dematerialzation)
 			pos.y = pos.y-300
+			-- I need to change this so it's better placed rather than -300 in the y, prevent overlaping
 			minetest.place_schematic(pos, _tardis.MODPATH .. DIR_DELIM .. "schems" .. DIR_DELIM .. "interior_console_room.mts")
 			pos.y = pos.y+1
 			pos.x = pos.x+7
@@ -25,6 +26,7 @@ exterior.on_place = function(pos, placer, itemstack, pointed_thing)
 			meta:set_string("id", name) -- set exterior id
             user.in_pos = vector.new(pos.x, pos.y, pos.z)
             user.validation = true
+			user.physics.materialized = true -- Set to in world
 			 -- Gets the opposite dir (the one the user should enter)
 			 -- Then sets the param2/facing
 			user.dest_dir = _tardis.tools.toParam2( _tardis.tools.flip_dir( _tardis.tools.rad2deg( placer:get_look_horizontal() ) ) )

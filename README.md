@@ -3,9 +3,19 @@ A mod inspired by [Taridis_New](https://github.com/PiDemon/Taridis_New), using e
 
 ![Complete colors (including older designs)](screenshot.png)
 
+## Latest
+
+> Last Updated: 03/14/2022
+
+I've lately completed these things
+
+* Completed more user functions which will be needed for various things (add/remove companion/pilot, check membership status, and quick promote/demote functions)
+
+> My next planned thing is to work on the power system (add/remove power stored, add/remove max power storable, add/remove to power generated)
+
 ## Todo:
 
-> Last Updated: 01/20/2022
+> Last Updated: 03/14/2022
 
 - [x] Build Mod Storage Structure
 - [ ] Build more sophisticated placement of tardis interior schematic (Focus on more better placement coding)
